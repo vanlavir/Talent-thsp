@@ -1,0 +1,5 @@
+import {requireUser} from '@/lib/auth';
+import {read} from '@/lib/store';
+import DownloadProfile from '@/app/download-profile';
+export const dynamic='force-dynamic';
+export default async function Profile(){const user=await requireUser();const p=await read(user.userId,'profile','me');if(!p)return <main className="print-page">Сначала сохраните профиль.</main>;return <main className="print-page"><DownloadProfile profile={p}/><div className="brand"><b>ФСП</b><span>Talent</span></div><hr/><h1>{p.name}</h1><h2>{p.role} / {p.grade||'Грейд не подтверждён'}</h2><p>{p.city} · {p.format} · Опыт: {p.experience} лет</p><p>{p.email}</p><h3>О себе</h3><p>{p.bio}</p><h3>Навыки</h3><p>{p.stack.join(' · ')}</p><h3>Подтверждение квалификации</h3><p>{p.grade?`Тест: ${p.score}/100 · ${new Date(p.verifiedAt).toLocaleDateString('ru-RU')}`:'Тестирование не пройдено'}</p><h3>ФСП</h3><p>Достижения в реестре не проверялись. {p.fspId?'Указан ID: '+p.fspId:'ID не привязан.'}</p><hr/><small>Демонстрационный профиль · {new Date().toLocaleDateString('ru-RU')}</small></main>;}

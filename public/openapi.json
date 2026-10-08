@@ -1,0 +1,1459 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "ФСП · Talent API",
+    "version": "0.3.0",
+    "description": "MVP обратного найма. Сессия через собственную регистрацию. Без почтового сервиса кабинет работает в демонстрационном режиме, обязательная проверка Mail.ru включается при MAIL_PROVIDER=mailru, MAILRU_USER, MAILRU_PASSWORD и MAILRU_ENABLED=true; резервный Resend использует RESEND_API_KEY + MAIL_FROM. Время — Unix миллисекунды. HTTP/HTTPS ссылки. Полный сценарий и ограничения: /documentation.pdf."
+  },
+  "servers": [
+    {
+      "url": "https://fsp-talent-lct.ambergleam8.chatgpt.site"
+    },
+    {
+      "url": "http://127.0.0.1:5173"
+    }
+  ],
+  "paths": {
+    "/api/auth": {
+      "get": {
+        "description": "user: объект аккаунта с emailVerified либо null.",
+        "responses": {
+          "200": {
+            "description": "Успех; структура зависит от действия.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Хранилище или почтовый транспорт недоступны.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "description": "Регистрация, вход, выход. Cookie fsp_session; пароль хранится как bcrypt. Регистрация не подтверждает почту.",
+        "security": [],
+        "parameters": [
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Точный origin текущего сайта."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/register"
+                  },
+                  {
+                    "$ref": "#/components/schemas/login"
+                  },
+                  {
+                    "$ref": "#/components/schemas/logout"
+                  }
+                ],
+                "discriminator": {
+                  "propertyName": "action",
+                  "mapping": {
+                    "register": "#/components/schemas/register",
+                    "login": "#/components/schemas/login",
+                    "logout": "#/components/schemas/logout"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Успех; структура зависит от действия.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Аккаунт создан, установлена cookie сессии.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Некорректные поля или код.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Нет сессии; для платформы также неподтверждённая почта при настроенном сервисе.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Неверная роль или Origin.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Конфликт, использованная/истёкшая попытка, интервал грейда, занятый аккаунт.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Превышен размер запроса.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Превышен лимит попыток.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Хранилище или почтовый транспорт недоступны.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/platform": {
+      "get": {
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "description": "Кандидат: role, profile, company, invitations, candidates:[]. Работодатель: role, company, candidates, invitations, profile:null. Почта кандидата скрыта до accepted. match содержит value, matched, reasons.",
+        "parameters": [
+          {
+            "name": "role",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "Backend",
+                "Frontend",
+                "Data Science"
+              ]
+            },
+            "description": "Специализация, по умолчанию Backend"
+          },
+          {
+            "name": "grade",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "Junior",
+                "Middle",
+                "Senior"
+              ]
+            },
+            "description": "Грейд, по умолчанию Middle"
+          },
+          {
+            "name": "stack",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "maxLength": 2000
+            },
+            "description": "Требуемые стеки через запятую в API; интерфейс использует галочки"
+          },
+          {
+            "name": "format",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "maxLength": 2000
+            },
+            "description": "Удалённо / Гибрид / Офис"
+          },
+          {
+            "name": "strict",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "maxLength": 2000
+            },
+            "description": "Непустое значение ограничивает роль/грейд"
+          },
+          {
+            "name": "fsp",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "maxLength": 2000
+            },
+            "description": "Непустое значение требует достижения"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Успех; структура зависит от действия.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Нет сессии; для платформы также неподтверждённая почта при настроенном сервисе.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Хранилище или почтовый транспорт недоступны.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "description": "profile/portfolio/questionnaire/startTest/submitTest/history/respond/submitSolution — кандидат. company/invite/previewAssessment — работодатель. save возвращает {ok:true}; startTest {id,grade,questions,expires}; submitTest Result; history {results:Result[]}; previewAssessment {role,grade,stack,method,competencies,questions}. Опубликованный профиль и компания сохраняются в D1; приглашение содержит snapshot задания.",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Точный origin текущего сайта."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/questionnaire"
+                  },
+                  {
+                    "$ref": "#/components/schemas/profile"
+                  },
+                  {
+                    "$ref": "#/components/schemas/portfolio"
+                  },
+                  {
+                    "$ref": "#/components/schemas/company"
+                  },
+                  {
+                    "$ref": "#/components/schemas/startTest"
+                  },
+                  {
+                    "$ref": "#/components/schemas/submitTest"
+                  },
+                  {
+                    "$ref": "#/components/schemas/history"
+                  },
+                  {
+                    "$ref": "#/components/schemas/invite"
+                  },
+                  {
+                    "$ref": "#/components/schemas/respond"
+                  },
+                  {
+                    "$ref": "#/components/schemas/submitSolution"
+                  },
+                  {
+                    "$ref": "#/components/schemas/previewAssessment"
+                  }
+                ],
+                "discriminator": {
+                  "propertyName": "action",
+                  "mapping": {
+                    "questionnaire": "#/components/schemas/questionnaire",
+                    "profile": "#/components/schemas/profile",
+                    "portfolio": "#/components/schemas/portfolio",
+                    "company": "#/components/schemas/company",
+                    "startTest": "#/components/schemas/startTest",
+                    "submitTest": "#/components/schemas/submitTest",
+                    "history": "#/components/schemas/history",
+                    "invite": "#/components/schemas/invite",
+                    "respond": "#/components/schemas/respond",
+                    "submitSolution": "#/components/schemas/submitSolution",
+                    "previewAssessment": "#/components/schemas/previewAssessment"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Успех; структура зависит от действия.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Некорректные поля или код.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Нет сессии; для платформы также неподтверждённая почта при настроенном сервисе.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Неверная роль или Origin.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Приглашение не найдено у владельца.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Конфликт, использованная/истёкшая попытка, интервал грейда, занятый аккаунт.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Превышен лимит попыток.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Хранилище или почтовый транспорт недоступны.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/email": {
+      "post": {
+        "description": "Доступен авторизованному пользователю до подтверждения email. send требует настройки провайдера; verify использует шестизначный код. Не возвращает код в API. Успех: {ok:true}.",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Точный origin текущего сайта."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/send"
+                  },
+                  {
+                    "$ref": "#/components/schemas/verify"
+                  }
+                ],
+                "discriminator": {
+                  "propertyName": "action",
+                  "mapping": {
+                    "send": "#/components/schemas/send",
+                    "verify": "#/components/schemas/verify"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Успех; структура зависит от действия.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Некорректные поля или код.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Нет сессии; для платформы также неподтверждённая почта при настроенном сервисе.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Неверная роль или Origin.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Конфликт, использованная/истёкшая попытка, интервал грейда, занятый аккаунт.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Превышен размер запроса.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Превышен лимит попыток.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Хранилище или почтовый транспорт недоступны.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/mail-setup": {
+      "post": {
+        "description": "Служебная проверка Mail.ru: только письмо самому отправителю, 3 раза в сутки. Без MAIL_SETUP_TOKEN отключена. Код 000000 не подтверждает аккаунт.",
+        "security": [
+          {
+            "setupBearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Успех; структура зависит от действия.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Неверная роль или Origin.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Превышен лимит попыток.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Хранилище или почтовый транспорт недоступны.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "setupBearer": {
+        "type": "http",
+        "scheme": "bearer"
+      },
+      "sessionCookie": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "fsp_session"
+      }
+    },
+    "schemas": {
+      "PortfolioProject": {
+        "type": "object",
+        "required": [
+          "title",
+          "type"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "Работа в компании",
+              "Хакатон",
+              "Крупный проект",
+              "Личный проект"
+            ]
+          },
+          "organization": {
+            "type": "string",
+            "maxLength": 150
+          },
+          "year": {
+            "type": "string",
+            "maxLength": 40
+          },
+          "role": {
+            "type": "string",
+            "maxLength": 150
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 2000
+          },
+          "result": {
+            "type": "string",
+            "maxLength": 1500
+          },
+          "url": {
+            "type": "string",
+            "maxLength": 1000
+          },
+          "repository": {
+            "type": "string",
+            "maxLength": 1000
+          }
+        }
+      },
+      "profile": {
+        "type": "object",
+        "required": [
+          "action",
+          "name",
+          "email",
+          "role",
+          "consent",
+          "industry",
+          "softSkills"
+        ],
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "profile"
+            ]
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "Backend",
+              "Frontend",
+              "Data Science"
+            ]
+          },
+          "stack": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 60
+            },
+            "maxItems": 100
+          },
+          "city": {
+            "type": "string",
+            "maxLength": 160
+          },
+          "format": {
+            "type": "string",
+            "enum": [
+              "Удалённо",
+              "Гибрид",
+              "Офис"
+            ]
+          },
+          "experience": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 50
+          },
+          "bio": {
+            "type": "string",
+            "maxLength": 2000
+          },
+          "fspId": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "consent": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "published": {
+            "type": "boolean"
+          },
+          "portfolio": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PortfolioProject"
+            },
+            "maxItems": 20
+          },
+          "birthDate": {
+            "type": "string",
+            "description": "YYYY-MM-DD либо пустая строка; не в будущем"
+          },
+          "education": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "level",
+                "institution",
+                "specialty",
+                "status",
+                "graduationYear"
+              ],
+              "properties": {
+                "level": {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                "institution": {
+                  "type": "string",
+                  "maxLength": 200
+                },
+                "specialty": {
+                  "type": "string",
+                  "maxLength": 200
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "Учусь",
+                    "Окончил(а)"
+                  ]
+                },
+                "graduationYear": {
+                  "type": "integer",
+                  "minimum": 1900
+                }
+              }
+            },
+            "maxItems": 10
+          },
+          "industry": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "softSkills": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 100
+            },
+            "maxItems": 16,
+            "minItems": 1
+          }
+        }
+      },
+      "portfolio": {
+        "type": "object",
+        "required": [
+          "action",
+          "portfolio"
+        ],
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "portfolio"
+            ]
+          },
+          "portfolio": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PortfolioProject"
+            },
+            "maxItems": 20
+          }
+        }
+      },
+      "company": {
+        "type": "object",
+        "required": [
+          "action",
+          "name",
+          "contact"
+        ],
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "company"
+            ]
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 2000
+          },
+          "contact": {
+            "type": "string",
+            "maxLength": 150
+          },
+          "website": {
+            "type": "string",
+            "maxLength": 500
+          },
+          "contactEmail": {
+            "type": "string",
+            "maxLength": 254
+          },
+          "size": {
+            "type": "string",
+            "enum": [
+              "Не указан",
+              "1–10",
+              "11–50",
+              "51–200",
+              "201–500",
+              "501–1000",
+              "Более 1000"
+            ]
+          },
+          "benefits": {
+            "type": "string",
+            "maxLength": 2000
+          },
+          "industry": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "city": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "address": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "contactName": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "contactRole": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "phone": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "telegram": {
+            "type": "string",
+            "maxLength": 200
+          }
+        }
+      },
+      "questionnaire": {
+        "type": "object",
+        "required": [
+          "action",
+          "industry",
+          "role",
+          "grade",
+          "focus",
+          "autonomy",
+          "collaboration"
+        ],
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "questionnaire"
+            ]
+          },
+          "industry": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "Backend",
+              "Frontend",
+              "Data Science"
+            ]
+          },
+          "grade": {
+            "type": "string",
+            "enum": [
+              "Junior",
+              "Middle",
+              "Senior"
+            ]
+          },
+          "focus": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "autonomy": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "collaboration": {
+            "type": "string",
+            "maxLength": 200
+          }
+        }
+      },
+      "startTest": {
+        "type": "object",
+        "required": [
+          "action",
+          "grade"
+        ],
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "startTest"
+            ]
+          },
+          "grade": {
+            "type": "string",
+            "enum": [
+              "Junior",
+              "Middle",
+              "Senior"
+            ]
+          }
+        }
+      },
+      "submitTest": {
+        "type": "object",
+        "required": [
+          "action",
+          "id",
+          "answers"
+        ],
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "submitTest"
+            ]
+          },
+          "id": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "answers": {
+            "type": "array",
+            "minItems": 15,
+            "maxItems": 15,
+            "items": {
+              "oneOf": [
+                {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 3
+                },
+                {
+                  "type": "string",
+                  "maxLength": 50
+                }
+              ]
+            },
+            "description": "Порядок соответствует вопросам. choice: индекс 0–3; number: строка с десятичным числом."
+          }
+        }
+      },
+      "history": {
+        "type": "object",
+        "required": [
+          "action"
+        ],
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "history"
+            ]
+          }
+        }
+      },
+      "previewAssessment": {
+        "type": "object",
+        "required": [
+          "action",
+          "description"
+        ],
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "previewAssessment"
+            ]
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 3000,
+            "minLength": 20
+          }
+        }
+      },
+      "invite": {
+        "type": "object",
+        "required": [
+          "action",
+          "candidateId",
+          "description",
+          "min",
+          "max"
+        ],
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "invite"
+            ]
+          },
+          "candidateId": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 3000
+          },
+          "min": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 10000000
+          },
+          "max": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 10000000
+          },
+          "assignment": {
+            "oneOf": [
+              {
+                "type": "object",
+                "required": [
+                  "mode"
+                ],
+                "properties": {
+                  "mode": {
+                    "type": "string",
+                    "enum": [
+                      "none"
+                    ]
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "required": [
+                  "mode",
+                  "catalogId"
+                ],
+                "properties": {
+                  "mode": {
+                    "type": "string",
+                    "enum": [
+                      "catalog"
+                    ]
+                  },
+                  "catalogId": {
+                    "type": "string",
+                    "maxLength": 100
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "required": [
+                  "mode",
+                  "title",
+                  "description"
+                ],
+                "properties": {
+                  "mode": {
+                    "type": "string",
+                    "enum": [
+                      "custom"
+                    ]
+                  },
+                  "title": {
+                    "type": "string",
+                    "maxLength": 120
+                  },
+                  "description": {
+                    "type": "string",
+                    "maxLength": 10000
+                  }
+                }
+              }
+            ]
+          }
+        }
+      },
+      "respond": {
+        "type": "object",
+        "required": [
+          "action",
+          "id",
+          "status"
+        ],
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "respond"
+            ]
+          },
+          "id": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "viewed",
+              "accepted",
+              "declined"
+            ]
+          }
+        }
+      },
+      "submitSolution": {
+        "type": "object",
+        "required": [
+          "action",
+          "id",
+          "text"
+        ],
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "submitSolution"
+            ]
+          },
+          "id": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "text": {
+            "type": "string",
+            "maxLength": 15000
+          },
+          "url": {
+            "type": "string",
+            "maxLength": 1000
+          }
+        }
+      },
+      "register": {
+        "type": "object",
+        "required": [
+          "action",
+          "username",
+          "email",
+          "password",
+          "role"
+        ],
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "register"
+            ]
+          },
+          "username": {
+            "type": "string",
+            "pattern": "^[a-z0-9_]{3,32}$"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "maxLength": 254
+          },
+          "password": {
+            "type": "string",
+            "minLength": 12,
+            "maxLength": 72,
+            "description": "Не более 72 UTF-8 байт"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "candidate",
+              "employer"
+            ]
+          }
+        }
+      },
+      "login": {
+        "type": "object",
+        "required": [
+          "action",
+          "username",
+          "password"
+        ],
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "login"
+            ]
+          },
+          "username": {
+            "type": "string",
+            "maxLength": 32
+          },
+          "password": {
+            "type": "string",
+            "maxLength": 72
+          }
+        }
+      },
+      "logout": {
+        "type": "object",
+        "required": [
+          "action"
+        ],
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "logout"
+            ]
+          }
+        }
+      },
+      "send": {
+        "type": "object",
+        "required": [
+          "action"
+        ],
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "send"
+            ]
+          }
+        }
+      },
+      "verify": {
+        "type": "object",
+        "required": [
+          "action",
+          "code"
+        ],
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "verify"
+            ]
+          },
+          "code": {
+            "type": "string",
+            "pattern": "^[0-9]{6}$"
+          }
+        }
+      },
+      "Question": {
+        "type": "object",
+        "required": [
+          "id",
+          "skill",
+          "text",
+          "kind"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "skill": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "text": {
+            "type": "string",
+            "maxLength": 4000
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "choice",
+              "number"
+            ]
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 1000
+            },
+            "maxItems": 4
+          }
+        },
+        "description": "Публичное условие; ответ и допуск не выдаются."
+      },
+      "Result": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "score": {
+            "type": "integer"
+          },
+          "passed": {
+            "type": "boolean"
+          },
+          "grade": {
+            "type": "string",
+            "enum": [
+              "Junior",
+              "Middle",
+              "Senior"
+            ]
+          },
+          "date": {
+            "type": "integer"
+          },
+          "version": {
+            "type": "integer"
+          },
+          "practicalCorrect": {
+            "type": "integer"
+          },
+          "practicalTotal": {
+            "type": "integer"
+          },
+          "skills": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "skill": {
+                  "type": "string",
+                  "maxLength": 200
+                },
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "choice",
+                    "number"
+                  ]
+                },
+                "correct": {
+                  "type": "boolean"
+                }
+              }
+            },
+            "maxItems": 100
+          }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "required": [
+          "error"
+        ],
+        "properties": {
+          "error": {
+            "type": "string",
+            "maxLength": 2000
+          }
+        }
+      }
+    }
+  }
+}

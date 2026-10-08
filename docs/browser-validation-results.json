@@ -1,0 +1,17 @@
+{
+  "passed": true,
+  "date": "2026-10-08T21:52:41.812Z",
+  "checks": [
+    "01-profile",
+    "02-grade",
+    "03-hidden-contact",
+    "04-invitation",
+    "05-accepted",
+    "06-solution"
+  ],
+  "scope": "Headless Edge, two fresh local accounts, real built Worker + local D1; scripted oracle answers",
+  "limitations": [
+    "No live SMTP in local run",
+    "Not independent human grade validation"
+  ]
+}

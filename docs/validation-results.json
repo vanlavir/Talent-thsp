@@ -1,0 +1,119 @@
+{
+  "date": "2026-10-08T21:21:56.888Z",
+  "checks": [
+    "Real registration creates candidate session",
+    "Registration hashes password",
+    "Logout invalidates session",
+    "Login creates a fresh session",
+    "Real registration creates employer session",
+    "Registration hashes password",
+    "Logout invalidates session",
+    "Login creates a fresh session",
+    "Real registration creates candidate session",
+    "Registration hashes password",
+    "Logout invalidates session",
+    "Login creates a fresh session",
+    "Industry and structured soft skills validated",
+    "Birth date and education persist",
+    "Survey required by server",
+    "Survey saved",
+    "15 questions, 5 practical",
+    "Answers/tolerance hidden",
+    "Grade confirmed by practical and total thresholds",
+    "Attempt consumed once",
+    "90-day grade interval",
+    "Employer cannot submit candidate survey",
+    "Candidate published",
+    "Employer sees industry, soft skills and survey",
+    "Need generates grade-specific assessment",
+    "Contacts hidden before acceptance",
+    "Other candidate cannot see invitations",
+    "Other candidate cannot submit",
+    "Employer receives solution",
+    "Viewed status shared",
+    "Acceptance reveals contact",
+    "Accepted status shared",
+    "Unconfigured mail never claims delivery",
+    "Unverified cabinet blocked",
+    "Mail transport receives recipient and code",
+    "Verified cabinet accessible",
+    "Used verification secret removed",
+    "All generated oracle answers pass",
+    "Correct choices alone never pass"
+  ],
+  "assessment": {
+    "generatedForms": 900,
+    "uniquePracticalForms": 708,
+    "oracleFailures": 0,
+    "memorizationPasses": 0
+  },
+  "ranking": [
+    {
+      "role": "Backend",
+      "grade": "Middle",
+      "precisionAt1": 1,
+      "precisionAt5": 0.4,
+      "categoryPrecisionAt5": 0.6666666666666666,
+      "top": [
+        "anna",
+        "mikhail",
+        "nikita",
+        "alex",
+        "ivan"
+      ]
+    },
+    {
+      "role": "Frontend",
+      "grade": "Middle",
+      "precisionAt1": 1,
+      "precisionAt5": 0.2,
+      "categoryPrecisionAt5": 1,
+      "top": [
+        "daria",
+        "polina",
+        "anna",
+        "elena",
+        "nikita"
+      ]
+    },
+    {
+      "role": "Data Science",
+      "grade": "Middle",
+      "precisionAt1": 1,
+      "precisionAt5": 0.2,
+      "categoryPrecisionAt5": 1,
+      "top": [
+        "elena",
+        "anna",
+        "mikhail",
+        "daria",
+        "nikita"
+      ]
+    },
+    {
+      "role": "Backend",
+      "grade": "Senior",
+      "precisionAt1": 1,
+      "precisionAt5": 0.2,
+      "categoryPrecisionAt5": 1,
+      "top": [
+        "alex",
+        "anna",
+        "ivan",
+        "nikita",
+        "mikhail"
+      ]
+    }
+  ],
+  "dataset": {
+    "candidates": 8,
+    "needs": 4,
+    "labels": "Synthetic authored relevance labels; no independent experts"
+  },
+  "limitations": [
+    "Not expert grade validation",
+    "No empirical reliability/discrimination study",
+    "In-memory SQLite integration and mocked mail, not delivered email",
+    "Small synthetic ranking set; no generalization claim"
+  ]
+}

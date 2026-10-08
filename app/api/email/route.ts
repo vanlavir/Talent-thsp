@@ -1,0 +1,12 @@
+import {getUser,digest,limit} from '@/lib/auth';
+import {read,put,database} from '@/lib/store';
+import {mailReady,sendVerification} from '@/lib/mail';
+export const dynamic='force-dynamic';
+export async function POST(req:Request){
+ const user=await getUser();if(!user)return Response.json({error:'Войдите в систему'},{status:401});
+ if(req.headers.get('origin')!==new URL(req.url).origin)return Response.json({error:'Недопустимый источник запроса'},{status:403});
+ try{const raw=await req.text();if(raw.length>2000)return Response.json({error:'Слишком большой запрос'},{status:413});const b=JSON.parse(raw);const old=await read(user.userId,'emailVerification','main');if(old?.verified)return Response.json({ok:true});
+ if(b.action==='send'){if(!mailReady())return Response.json({error:'Почтовый сервис ещё не подключён. Подтверждение пока недоступно.'},{status:503});if(!await limit('email-send:'+user.userId,1,60000)||!await limit('email-day:'+user.userId,6,86400000))return Response.json({error:'Слишком много писем. Подождите перед повтором.'},{status:429});const n=crypto.getRandomValues(new Uint32Array(1))[0]%1000000;const code=String(n).padStart(6,'0');const record={id:'main',hash:await digest(user.userId+':'+code),expires:Date.now()+15*60000,verified:false,email:user.email};await put(user.userId,'emailVerification',record);await sendVerification(user.email,code);return Response.json({ok:true});}
+ if(b.action==='verify'){if(!await limit('email-check:'+user.userId,8,15*60000))return Response.json({error:'Слишком много попыток ввода кода'},{status:429});if(!/^\d{6}$/.test(b.code||'')||!old||old.expires<Date.now()||old.email!==user.email||old.hash!==await digest(user.userId+':'+b.code))return Response.json({error:'Код неверен или истёк'},{status:400});const row=await database().prepare("UPDATE records SET data=?,updated=? WHERE owner=? AND kind='emailVerification' AND json_extract(data,'$.verified')=0 AND json_extract(data,'$.hash')=? AND json_extract(data,'$.expires')>? RETURNING id").bind(JSON.stringify({id:'main',verified:true,email:user.email,verifiedAt:Date.now()}),Date.now(),user.userId,old.hash,Date.now()).first();if(!row)return Response.json({error:'Код уже использован'},{status:409});return Response.json({ok:true});}return Response.json({error:'Неизвестное действие'},{status:400});
+ }catch{return Response.json({error:'Не удалось подтвердить почту. Попробуйте позже.'},{status:503});}
+}

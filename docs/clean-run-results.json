@@ -1,0 +1,18 @@
+{
+  "date": "2026-10-09",
+  "platform": "Windows",
+  "sourceAppCommit": "e59aabe11903b29b2fea9e4062ae0af2fa0c763d",
+  "isolation": "Fresh git clone with no node_modules, dist, .wrangler or .sites-runtime; no production mail secrets",
+  "install": "npm 10 run install:ci: 694 packages installed",
+  "build": "npm run build: succeeded",
+  "migrations": [
+    "0000_flimsy_bushwacker.sql",
+    "0001_small_mordo.sql"
+  ],
+  "startup": "npm start: local Worker on 127.0.0.1:8787",
+  "httpAcceptance": "20 operations passed; docs/http-validation-results.json",
+  "limitations": [
+    "Only Windows checked",
+    "No production SMTP in local run"
+  ]
+}

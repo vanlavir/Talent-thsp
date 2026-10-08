@@ -1,0 +1,112 @@
+{
+  "date": "2026-10-08T21:30:58.656Z",
+  "scope": "Built Worker HTTP + local D1, two freshly registered roles; scripted oracle answers read only from isolated local test database",
+  "passed": true,
+  "checks": [
+    {
+      "step": "/",
+      "status": 200,
+      "milliseconds": 52
+    },
+    {
+      "step": "register",
+      "status": 201,
+      "milliseconds": 325
+    },
+    {
+      "step": "/api/auth",
+      "status": 200,
+      "milliseconds": 21
+    },
+    {
+      "step": "profile",
+      "status": 200,
+      "milliseconds": 42
+    },
+    {
+      "step": "portfolio",
+      "status": 200,
+      "milliseconds": 34
+    },
+    {
+      "step": "questionnaire",
+      "status": 200,
+      "milliseconds": 48
+    },
+    {
+      "step": "startTest",
+      "status": 200,
+      "milliseconds": 56
+    },
+    {
+      "step": "submitTest",
+      "status": 200,
+      "milliseconds": 50
+    },
+    {
+      "step": "submitTest",
+      "status": 409,
+      "milliseconds": 43
+    },
+    {
+      "step": "register",
+      "status": 201,
+      "milliseconds": 286
+    },
+    {
+      "step": "company",
+      "status": 200,
+      "milliseconds": 26
+    },
+    {
+      "step": "/api/platform?role=Backend&grade=Middle&stack=Python,PostgreSQL&strict=1",
+      "status": 200,
+      "milliseconds": 49
+    },
+    {
+      "step": "invite",
+      "status": 200,
+      "milliseconds": 45
+    },
+    {
+      "step": "/api/platform",
+      "status": 200,
+      "milliseconds": 43
+    },
+    {
+      "step": "submitSolution",
+      "status": 200,
+      "milliseconds": 47
+    },
+    {
+      "step": "respond",
+      "status": 200,
+      "milliseconds": 52
+    },
+    {
+      "step": "/api/platform",
+      "status": 200,
+      "milliseconds": 46
+    },
+    {
+      "step": "send",
+      "status": 503,
+      "milliseconds": 28
+    },
+    {
+      "step": "/openapi.json",
+      "status": 200,
+      "milliseconds": 23
+    },
+    {
+      "step": "/documentation.pdf",
+      "status": 200,
+      "milliseconds": 11
+    }
+  ],
+  "limitations": [
+    "Not browser visual QA",
+    "Not independent human grade validation",
+    "Local mail intentionally unconfigured; live receipt reported by user separately"
+  ]
+}
