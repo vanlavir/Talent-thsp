@@ -1,0 +1,268 @@
+{
+  "date": "2026-10-08T22:28:43.666Z",
+  "candidates": 1000,
+  "needs": 12,
+  "labelMethod": "Authored synthetic: category match plus stack overlap, not independent judgement",
+  "scope": "In-process ranking only; excludes HTTP/database",
+  "queries": [
+    {
+      "need": {
+        "role": "Backend",
+        "grade": "Middle",
+        "stack": "Python,PostgreSQL",
+        "relevant": [
+          "anna",
+          "mikhail"
+        ]
+      },
+      "weighted": {
+        "precisionAt1": 1,
+        "precisionAt5": 1,
+        "ndcgAt5": 1
+      },
+      "stackBaseline": {
+        "precisionAt1": 1,
+        "precisionAt5": 1,
+        "ndcgAt5": 1
+      },
+      "elapsedMs": 22.450400000000172
+    },
+    {
+      "need": {
+        "role": "Backend",
+        "grade": "Middle",
+        "stack": "Python,PostgreSQL",
+        "relevant": [
+          "anna",
+          "mikhail"
+        ],
+        "format": "Удалённо"
+      },
+      "weighted": {
+        "precisionAt1": 1,
+        "precisionAt5": 1,
+        "ndcgAt5": 1
+      },
+      "stackBaseline": {
+        "precisionAt1": 1,
+        "precisionAt5": 1,
+        "ndcgAt5": 1
+      },
+      "elapsedMs": 23.687399999999798
+    },
+    {
+      "need": {
+        "role": "Backend",
+        "grade": "Middle",
+        "stack": "Python,PostgreSQL,Redis",
+        "relevant": [
+          "anna",
+          "mikhail"
+        ]
+      },
+      "weighted": {
+        "precisionAt1": 1,
+        "precisionAt5": 1,
+        "ndcgAt5": 1
+      },
+      "stackBaseline": {
+        "precisionAt1": 1,
+        "precisionAt5": 1,
+        "ndcgAt5": 1
+      },
+      "elapsedMs": 30.025700000000143
+    },
+    {
+      "need": {
+        "role": "Frontend",
+        "grade": "Middle",
+        "stack": "React,TypeScript",
+        "relevant": [
+          "daria"
+        ]
+      },
+      "weighted": {
+        "precisionAt1": 1,
+        "precisionAt5": 1,
+        "ndcgAt5": 1
+      },
+      "stackBaseline": {
+        "precisionAt1": 1,
+        "precisionAt5": 1,
+        "ndcgAt5": 1
+      },
+      "elapsedMs": 16.552900000000136
+    },
+    {
+      "need": {
+        "role": "Frontend",
+        "grade": "Middle",
+        "stack": "React,TypeScript",
+        "relevant": [
+          "daria"
+        ],
+        "format": "Удалённо"
+      },
+      "weighted": {
+        "precisionAt1": 1,
+        "precisionAt5": 1,
+        "ndcgAt5": 1
+      },
+      "stackBaseline": {
+        "precisionAt1": 1,
+        "precisionAt5": 1,
+        "ndcgAt5": 1
+      },
+      "elapsedMs": 13.465400000000045
+    },
+    {
+      "need": {
+        "role": "Frontend",
+        "grade": "Middle",
+        "stack": "React,TypeScript,Redis",
+        "relevant": [
+          "daria"
+        ]
+      },
+      "weighted": {
+        "precisionAt1": 1,
+        "precisionAt5": 1,
+        "ndcgAt5": 1
+      },
+      "stackBaseline": {
+        "precisionAt1": 1,
+        "precisionAt5": 1,
+        "ndcgAt5": 1
+      },
+      "elapsedMs": 19.730199999999968
+    },
+    {
+      "need": {
+        "role": "Data Science",
+        "grade": "Middle",
+        "stack": "Python,Pandas",
+        "relevant": [
+          "elena"
+        ]
+      },
+      "weighted": {
+        "precisionAt1": 1,
+        "precisionAt5": 1,
+        "ndcgAt5": 1
+      },
+      "stackBaseline": {
+        "precisionAt1": 1,
+        "precisionAt5": 1,
+        "ndcgAt5": 1
+      },
+      "elapsedMs": 12.875300000000152
+    },
+    {
+      "need": {
+        "role": "Data Science",
+        "grade": "Middle",
+        "stack": "Python,Pandas",
+        "relevant": [
+          "elena"
+        ],
+        "format": "Удалённо"
+      },
+      "weighted": {
+        "precisionAt1": 1,
+        "precisionAt5": 1,
+        "ndcgAt5": 1
+      },
+      "stackBaseline": {
+        "precisionAt1": 1,
+        "precisionAt5": 1,
+        "ndcgAt5": 1
+      },
+      "elapsedMs": 13.4679000000001
+    },
+    {
+      "need": {
+        "role": "Data Science",
+        "grade": "Middle",
+        "stack": "Python,Pandas,Redis",
+        "relevant": [
+          "elena"
+        ]
+      },
+      "weighted": {
+        "precisionAt1": 1,
+        "precisionAt5": 1,
+        "ndcgAt5": 1
+      },
+      "stackBaseline": {
+        "precisionAt1": 0,
+        "precisionAt5": 0.4,
+        "ndcgAt5": 0.360054614577234
+      },
+      "elapsedMs": 24.228599999999915
+    },
+    {
+      "need": {
+        "role": "Backend",
+        "grade": "Senior",
+        "stack": "Go,Kubernetes",
+        "relevant": [
+          "alex"
+        ]
+      },
+      "weighted": {
+        "precisionAt1": 1,
+        "precisionAt5": 1,
+        "ndcgAt5": 1
+      },
+      "stackBaseline": {
+        "precisionAt1": 1,
+        "precisionAt5": 1,
+        "ndcgAt5": 1
+      },
+      "elapsedMs": 12.865899999999783
+    },
+    {
+      "need": {
+        "role": "Backend",
+        "grade": "Senior",
+        "stack": "Go,Kubernetes",
+        "relevant": [
+          "alex"
+        ],
+        "format": "Удалённо"
+      },
+      "weighted": {
+        "precisionAt1": 1,
+        "precisionAt5": 1,
+        "ndcgAt5": 1
+      },
+      "stackBaseline": {
+        "precisionAt1": 1,
+        "precisionAt5": 1,
+        "ndcgAt5": 1
+      },
+      "elapsedMs": 14.377000000000407
+    },
+    {
+      "need": {
+        "role": "Backend",
+        "grade": "Senior",
+        "stack": "Go,Kubernetes,Redis",
+        "relevant": [
+          "alex"
+        ]
+      },
+      "weighted": {
+        "precisionAt1": 1,
+        "precisionAt5": 1,
+        "ndcgAt5": 1
+      },
+      "stackBaseline": {
+        "precisionAt1": 1,
+        "precisionAt5": 1,
+        "ndcgAt5": 1
+      },
+      "elapsedMs": 21.549199999999928
+    }
+  ]
+}

@@ -2,7 +2,7 @@
   "openapi": "3.0.3",
   "info": {
     "title": "ФСП · Talent API",
-    "version": "0.3.0",
+    "version": "0.4.0",
     "description": "MVP обратного найма. Сессия через собственную регистрацию. Без почтового сервиса кабинет работает в демонстрационном режиме, обязательная проверка Mail.ru включается при MAIL_PROVIDER=mailru, MAILRU_USER, MAILRU_PASSWORD и MAILRU_ENABLED=true; резервный Resend использует RESEND_API_KEY + MAIL_FROM. Время — Unix миллисекунды. HTTP/HTTPS ссылки. Полный сценарий и ограничения: /documentation.pdf."
   },
   "servers": [
@@ -246,6 +246,32 @@
               "maxLength": 2000
             },
             "description": "Непустое значение требует достижения"
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 100000
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "maxLength": 160
+            }
           }
         ],
         "responses": {
@@ -254,7 +280,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/PlatformResponse"
                 }
               }
             }
@@ -306,6 +332,12 @@
               "schema": {
                 "oneOf": [
                   {
+                    "$ref": "#/components/schemas/previewProfile"
+                  },
+                  {
+                    "$ref": "#/components/schemas/reviewSolution"
+                  },
+                  {
                     "$ref": "#/components/schemas/questionnaire"
                   },
                   {
@@ -342,6 +374,8 @@
                 "discriminator": {
                   "propertyName": "action",
                   "mapping": {
+                    "previewProfile": "#/components/schemas/previewProfile",
+                    "reviewSolution": "#/components/schemas/reviewSolution",
                     "questionnaire": "#/components/schemas/questionnaire",
                     "profile": "#/components/schemas/profile",
                     "portfolio": "#/components/schemas/portfolio",
@@ -365,7 +399,26 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/Ok"
+                    },
+                    {
+                      "$ref": "#/components/schemas/TestStarted"
+                    },
+                    {
+                      "$ref": "#/components/schemas/Result"
+                    },
+                    {
+                      "$ref": "#/components/schemas/History"
+                    },
+                    {
+                      "$ref": "#/components/schemas/NeedPreview"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ProfilePreview"
+                    }
+                  ]
                 }
               }
             }
@@ -828,6 +881,23 @@
             },
             "maxItems": 16,
             "minItems": 1
+          },
+          "visibility": {
+            "type": "object",
+            "properties": {
+              "education": {
+                "type": "boolean"
+              },
+              "portfolio": {
+                "type": "boolean"
+              },
+              "questionnaire": {
+                "type": "boolean"
+              },
+              "softSkills": {
+                "type": "boolean"
+              }
+            }
           }
         }
       },
@@ -1206,6 +1276,55 @@
           }
         }
       },
+      "previewProfile": {
+        "type": "object",
+        "required": [
+          "action"
+        ],
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "previewProfile"
+            ]
+          }
+        }
+      },
+      "reviewSolution": {
+        "type": "object",
+        "required": [
+          "action",
+          "id",
+          "ratings",
+          "comment"
+        ],
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "reviewSolution"
+            ]
+          },
+          "id": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "ratings": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 2
+            },
+            "maxItems": 3,
+            "minItems": 3
+          },
+          "comment": {
+            "type": "string",
+            "maxLength": 2000
+          }
+        }
+      },
       "submitSolution": {
         "type": "object",
         "required": [
@@ -1453,6 +1572,513 @@
             "maxLength": 2000
           }
         }
+      },
+      "Ok": {
+        "type": "object",
+        "required": [
+          "ok"
+        ],
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          }
+        }
+      },
+      "Match": {
+        "type": "object",
+        "required": [
+          "value",
+          "matched",
+          "missing",
+          "factors",
+          "reasons"
+        ],
+        "properties": {
+          "value": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "matched": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 60
+            },
+            "maxItems": 100
+          },
+          "missing": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 60
+            },
+            "maxItems": 100
+          },
+          "reasons": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 2000
+            },
+            "maxItems": 100
+          },
+          "factors": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "label",
+                "value",
+                "max"
+              ],
+              "properties": {
+                "label": {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                "value": {
+                  "type": "number"
+                },
+                "max": {
+                  "type": "number"
+                }
+              }
+            },
+            "maxItems": 100
+          }
+        }
+      },
+      "PublicProfile": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "role",
+          "stack"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "Backend",
+              "Frontend",
+              "Data Science"
+            ]
+          },
+          "stack": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 60
+            },
+            "maxItems": 100
+          },
+          "city": {
+            "type": "string",
+            "maxLength": 160
+          },
+          "format": {
+            "type": "string",
+            "enum": [
+              "Удалённо",
+              "Гибрид",
+              "Офис"
+            ]
+          },
+          "experience": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 50
+          },
+          "bio": {
+            "type": "string",
+            "maxLength": 2000
+          },
+          "portfolio": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PortfolioProject"
+            },
+            "maxItems": 20
+          },
+          "education": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "level",
+                "institution",
+                "specialty",
+                "status",
+                "graduationYear"
+              ],
+              "properties": {
+                "level": {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                "institution": {
+                  "type": "string",
+                  "maxLength": 200
+                },
+                "specialty": {
+                  "type": "string",
+                  "maxLength": 200
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "Учусь",
+                    "Окончил(а)"
+                  ]
+                },
+                "graduationYear": {
+                  "type": "integer",
+                  "minimum": 1900
+                }
+              }
+            },
+            "maxItems": 10
+          },
+          "industry": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "softSkills": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 100
+            },
+            "maxItems": 16,
+            "minItems": 1
+          },
+          "grade": {
+            "type": "string",
+            "enum": [
+              "Junior",
+              "Middle",
+              "Senior"
+            ],
+            "nullable": true
+          },
+          "score": {
+            "type": "integer"
+          },
+          "fsp": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            },
+            "maxItems": 100
+          },
+          "verifiedAt": {
+            "type": "integer"
+          },
+          "match": {
+            "$ref": "#/components/schemas/Match"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "Только после accepted; отсутствует в previewProfile"
+          }
+        }
+      },
+      "Invitation": {
+        "type": "object",
+        "required": [
+          "id",
+          "status",
+          "min",
+          "max",
+          "description"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "candidateId": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "candidateName": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "company": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "contact": {
+            "type": "string",
+            "maxLength": 150
+          },
+          "min": {
+            "type": "integer"
+          },
+          "max": {
+            "type": "integer"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 3000
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "sent",
+              "viewed",
+              "accepted",
+              "declined"
+            ]
+          },
+          "created": {
+            "type": "integer"
+          },
+          "assignment": {
+            "type": "object",
+            "nullable": true
+          },
+          "solution": {
+            "type": "object",
+            "properties": {
+              "text": {
+                "type": "string",
+                "maxLength": 15000
+              },
+              "url": {
+                "type": "string",
+                "maxLength": 1000
+              },
+              "submittedAt": {
+                "type": "integer"
+              }
+            }
+          },
+          "review": {
+            "type": "object",
+            "properties": {
+              "ratings": {
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 2
+                },
+                "maxItems": 3
+              },
+              "score": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 6
+              },
+              "comment": {
+                "type": "string",
+                "maxLength": 2000
+              },
+              "reviewedAt": {
+                "type": "integer"
+              },
+              "solutionSubmittedAt": {
+                "type": "integer"
+              }
+            }
+          }
+        }
+      },
+      "PlatformResponse": {
+        "type": "object",
+        "required": [
+          "role",
+          "candidates",
+          "invitations"
+        ],
+        "properties": {
+          "role": {
+            "type": "string",
+            "enum": [
+              "candidate",
+              "employer"
+            ]
+          },
+          "profile": {
+            "type": "object",
+            "nullable": true,
+            "description": "Полный собственный профиль для кандидата; null для работодателя"
+          },
+          "company": {
+            "type": "object"
+          },
+          "questionnaire": {
+            "type": "object",
+            "nullable": true
+          },
+          "candidates": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PublicProfile"
+            },
+            "maxItems": 100
+          },
+          "invitations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Invitation"
+            },
+            "maxItems": 100
+          },
+          "pagination": {
+            "type": "object",
+            "properties": {
+              "offset": {
+                "type": "integer"
+              },
+              "limit": {
+                "type": "integer"
+              },
+              "total": {
+                "type": "integer"
+              },
+              "hasMore": {
+                "type": "boolean"
+              }
+            }
+          }
+        }
+      },
+      "TestStarted": {
+        "type": "object",
+        "required": [
+          "id",
+          "grade",
+          "questions",
+          "expires"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "grade": {
+            "type": "string",
+            "enum": [
+              "Junior",
+              "Middle",
+              "Senior"
+            ]
+          },
+          "questions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Question"
+            },
+            "maxItems": 15
+          },
+          "expires": {
+            "type": "integer"
+          }
+        }
+      },
+      "History": {
+        "type": "object",
+        "required": [
+          "results"
+        ],
+        "properties": {
+          "results": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Result"
+            },
+            "maxItems": 100
+          }
+        }
+      },
+      "NeedPreview": {
+        "type": "object",
+        "required": [
+          "role",
+          "grade",
+          "stack",
+          "method",
+          "questions",
+          "tasks"
+        ],
+        "properties": {
+          "role": {
+            "type": "string",
+            "enum": [
+              "Backend",
+              "Frontend",
+              "Data Science"
+            ]
+          },
+          "grade": {
+            "type": "string",
+            "enum": [
+              "Junior",
+              "Middle",
+              "Senior"
+            ]
+          },
+          "stack": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 60
+            },
+            "maxItems": 100
+          },
+          "method": {
+            "type": "string",
+            "maxLength": 2000
+          },
+          "competencies": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 200
+            },
+            "maxItems": 100
+          },
+          "questions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Question"
+            },
+            "maxItems": 15
+          },
+          "tasks": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            },
+            "maxItems": 100
+          }
+        }
+      },
+      "ProfilePreview": {
+        "type": "object",
+        "properties": {
+          "profile": {
+            "$ref": "#/components/schemas/PublicProfile"
+          }
+        },
+        "description": "profile=null, если собственный профиль ещё не сохранён"
       }
     }
   }

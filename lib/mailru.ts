@@ -14,7 +14,7 @@ export function mailMessage(from:string,to:string,code:string){
 export async function sendMailru(user:string,password:string,to:string,code:string){
  const message=mailMessage(user,to,code);
  if(!password||password.length>256||/[\r\n\x00]/.test(password))throw new MailTransportError('configuration');
- const socket=connect({hostname:'smtp.mail.ru',port:465},{secureTransport:'on'});
+ const socket=connect({hostname:'smtp.mail.ru',port:465},{secureTransport:'on',allowHalfOpen:false});
  const reader=socket.readable.getReader(),writer=socket.writable.getWriter(),decoder=new TextDecoder();
  let buffer='',stage='connection';
  // One total deadline covers connection, auth and message acknowledgement.

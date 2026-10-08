@@ -1,6 +1,6 @@
 import {GRADE_BANK} from './assessment-bank';
 import {legacyQuestions} from './domain';
-export const ASSESSMENT_VERSION=2;
+export const ASSESSMENT_VERSION=3;
 export const PASS_SCORE:Record<string,number>={Junior:70,Middle:80,Senior:87};
 export function shuffle<T>(items:T[],rng=()=>crypto.getRandomValues(new Uint32Array(1))[0]/4294967296){const a=[...items];for(let i=a.length-1;i>0;i--){const j=Math.floor(rng()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
 export function practicalQuestions(role:string,grade:string,rng=()=>crypto.getRandomValues(new Uint32Array(1))[0]/4294967296){
@@ -18,7 +18,17 @@ export function practicalQuestions(role:string,grade:string,rng=()=>crypto.getRa
  Junior:[['Медиана',`Найдите медиану: ${a}, ${a+2}, ${a+4}, ${a+6}, ${a+100}.`,a+4],['MAE',`Две абсолютные ошибки: ${a} и ${b}. Каков MAE?`,(a+b)/2],['Recall',`TP=${a}, FN=${a}. Recall в процентах?`,50],['Train split',`Датасет ${a*100} строк. В train 80%. Сколько строк в train?`,a*80],['Среднее',`Среднее двух наблюдений ${a} и ${a+b*2}?`,a+b]],
  Middle:[['Precision',`TP=${a}, FP=${a*b}. Precision в процентах? До 2 знаков.`,100/(b+1)],['F1',`Precision=0.5, recall=1. F1=2PR/(P+R). Найдите F1 до 2 знаков.`,2/3],['Lift',`Конверсия A=${a}%, B=${a+b}%. Относительный рост в процентах? До 2 знаков.`,100*b/a],['Взвешенный MAE',`У сегмента 1 ${a} объектов и MAE=2; у сегмента 2 ${a*b} объектов и MAE=4. Общий MAE? До 2 знаков.`,(2+4*b)/(1+b)],['Holdout',`В ряду ${a*10} дней последние ${b} идут в test. Сколько дней останется для train?`,a*10-b]],
  Senior:[['Стоимость ошибок',`FN=${a}, FP=${b}, стоимость FN=${c*10}, FP=2. Общая стоимость?`,a*c*10+b*2],['IPW',`Для наблюдения propensity=1/${b}. Вес обратной вероятности 1/p?`,b],['Покрытие',`Из ${a*10} наблюдений ${a*9} попали в прогнозный интервал. Покрытие в процентах?`,90],['Precision@K',`В первых ${b*2} рекомендациях релевантны ${b}. Precision@K в процентах?`,50],['Смесь сегментов',`В сегменте A ${a} объектов и ошибка 1; в B ${a*b} и ошибка 3. Средняя ошибка? До 2 знаков.`,(1+3*b)/(1+b)]]}};
- return rows[role][grade].map(([skill,text,answer])=>({id:crypto.randomUUID(),skill,text,kind:'number',answer:Math.round(answer*100)/100,tolerance:0.011}));
+ // Five applied exercises per form, with changing datasets instead of constant answers.
+ const applied:Record<string,[string,string,number][]>= {
+ Backend:[['SQL и JOIN',`Есть ${a} заказов, у каждого ${b} позиций. INNER JOIN orders и items по order_id без фильтра. Сколько строк вернёт COUNT(*)?`,a*b],['Идемпотентность',`${a*b} запросов оплаты содержат ${b} различных ключей идемпотентности. Уникальный индекс защищает ключ, ответ записывается атомарно, все запросы успешны. Сколько платежей создаётся?`,b],['SQL и NULL',`В таблице ${a*b} строк, у ${a} значение email=NULL. Чему равен COUNT(email)?`,a*b-a]],
+ Frontend:[['React и замыкания',`State count=${a}. В одном обработчике ${b} раз вызван setCount(count+1) без функциональной формы. React пакетирует вызовы; count внутри обработчика не меняется. Итоговый count?`,a+1],['Promise и ошибки',`Промисы переданы Promise.allSettled: ${b} отклонены, остальные выполнены (всего ${a+b} промисов). Сколько fulfilled?`,a],['Сеть и актуальность',`Последовательно отправлены запросы с номерами 1..${a}. Ответы приходят в обратном порядке. Интерфейс применяет ответ только если номер равен последнему отправленному. Сколько ответов будет применено?`,1]],
+ 'Data Science':[['Матрица ошибок',`Порог классификации: TP=${a*b}, FP=${a}, FN=${b}. Рассчитайте F1=2TP/(2TP+FP+FN) в процентах, до 2 знаков.`,200*a*b/(2*a*b+a+b)],['Утечка данных',`В ${a*b} наблюдениях по времени последние ${b} — test, ещё ${a} перед ними — validation. Сколько наблюдений можно использовать для fit scaler без утечки?`,a*b-a-b],['Стоимость решения',`Порог A: FP=${a}, FN=${b}; порог B: FP=${a+b}, FN=0. FP стоит 1, FN стоит ${c}. На сколько стоимость A выше стоимости B? Допустимо отрицательное число.`,b*(c-1)]]
+ };
+ const selected=rows[role][grade].slice();
+ if(grade!=='Junior'){selected.splice(0,3,...applied[role]);}
+ else if(role==='Backend')selected[2]=applied.Backend[2];
+ else if(role==='Data Science')selected[2]=applied['Data Science'][0];
+ return selected.map(([skill,text,answer])=>({id:crypto.randomUUID(),skill,text,kind:'number',answer:Math.round(answer*100)/100,tolerance:0.011}));
 }
 export function generateAssessment(role:string,grade:string){
  const choices=grade==='Junior'?shuffle(legacyQuestions(role,grade)).slice(0,10).map(q=>({...q,kind:'choice'})):GRADE_BANK[role][grade].map(row=>{const options=shuffle(row.slice(2));return {id:crypto.randomUUID(),skill:row[0],text:row[1],kind:'choice',options,answer:options.indexOf(row[2])};});

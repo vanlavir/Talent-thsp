@@ -1,0 +1,19 @@
+{
+  "date": "2026-10-08T22:27:27.293Z",
+  "passed": true,
+  "syntheticProfiles": 1000,
+  "requests": 100,
+  "concurrency": 10,
+  "totalMs": 6624.0947,
+  "latencyMs": {
+    "median": 674.6212999999998,
+    "p95": 748.5915,
+    "max": 750.2539999999999
+  },
+  "maxResponseBytes": 27624,
+  "limitations": [
+    "Local Windows Worker + SQLite, not production SLA",
+    "All profiles loaded before in-memory ranking; SQL prefilter remains future work",
+    "Synthetic fixture removed after run"
+  ]
+}

@@ -1,5 +1,5 @@
 {
-  "date": "2026-10-08T21:21:56.888Z",
+  "date": "2026-10-08T22:28:43.667Z",
   "checks": [
     "Real registration creates candidate session",
     "Registration hashes password",
@@ -19,6 +19,7 @@
     "Survey saved",
     "15 questions, 5 practical",
     "Answers/tolerance hidden",
+    "Storage failure rolls back result, grade and attempt",
     "Grade confirmed by practical and total thresholds",
     "Attempt consumed once",
     "90-day grade interval",
@@ -30,9 +31,13 @@
     "Other candidate cannot see invitations",
     "Other candidate cannot submit",
     "Employer receives solution",
+    "Employer review preserved with score",
     "Viewed status shared",
     "Acceptance reveals contact",
     "Accepted status shared",
+    "New solution invalidates review and preserves accepted status",
+    "Exact date of birth never exposed",
+    "Candidate visibility enforced by API",
     "Unconfigured mail never claims delivery",
     "Unverified cabinet blocked",
     "Mail transport receives recipient and code",
@@ -43,7 +48,7 @@
   ],
   "assessment": {
     "generatedForms": 900,
-    "uniquePracticalForms": 708,
+    "uniquePracticalForms": 696,
     "oracleFailures": 0,
     "memorizationPasses": 0
   },
