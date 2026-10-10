@@ -12,7 +12,7 @@
 - Запуск: README.md, раздел «Локальный запуск».
 - Проверки и границы выводов: docs/acceptance.md, docs/validation-results.json, docs/http-validation-results.json, docs/browser-validation-results.json и docs/screenshots/.
 - Независимый пилот: docs/pilot-guide.md и docs/validation-protocol.md.
-- Презентация: будет добавлена после завершения работы; сейчас отсутствует.
+- Презентация: [Phasma — ФСП · Talent](Phasma_FSP_Talent_LCT_2026.pptx).
 
 ## Сценарий для жюри
 
