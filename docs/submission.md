@@ -1,5 +1,10 @@
 # Комплект сдачи ФСП · Talent
 
+## Доступ к демонстрационной версии
+
+Для доступа к демонстрационной версии сайта требуется VPN. Включите VPN перед открытием https://fsp-talent-lct.ambergleam8.chatgpt.site/.
+
+
 - Прототип: https://fsp-talent-lct.ambergleam8.chatgpt.site/
 - Репозиторий команды: https://github.com/vanlavir/Talent-thsp
 - Техническая документация: public/documentation.pdf; на сайте /documentation.pdf.
