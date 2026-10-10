@@ -11,3 +11,7 @@ body{margin:0;background:#f5f6f9;color:#1c2433;font-family:Arial,Helvetica,sans-
 .field select{width:100%;min-height:44px;border:1px solid #dce2ed;border-radius:8px;padding:10px 12px;background:#fff;color:#202938;font:inherit}.survey-summary{margin:16px 0;padding:12px;border:1px solid #dce2ed;border-radius:8px}.survey-summary summary{cursor:pointer;font-weight:600}.survey-summary p{margin:8px 0}.history-row .survey-summary{grid-column:1/-1;width:100%}
 
 .history-row:has(.survey-summary){flex-wrap:wrap}.history-row .survey-summary{flex-basis:100%}
+
+/* Keep sidebar scrolling without a visible scrollbar. */
+.product-sidebar [data-slot="sidebar-content"]{scrollbar-width:none;-ms-overflow-style:none}
+.product-sidebar [data-slot="sidebar-content"]::-webkit-scrollbar{display:none;width:0;height:0}
